@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend:
+    name: Backend CI
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: youth_finance_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run linter
+        working-directory: ./backend
+        run: npm run lint
+
+      - name: Generate Prisma Client
+        working-directory: ./backend
+        run: npm run prisma:generate
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/youth_finance_test
+
+      - name: Build
+        working-directory: ./backend
+        run: npm run build
+
+      - name: Run tests
+        working-directory: ./backend
+        run: npm test
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/youth_finance_test
+
+  web-dashboard:
+    name: Web Dashboard CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: web-dashboard/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./web-dashboard
+        run: npm ci
+
+      - name: Run linter
+        working-directory: ./web-dashboard
+        run: npm run lint
+
+      - name: Build
+        working-directory: ./web-dashboard
+        run: npm run build
