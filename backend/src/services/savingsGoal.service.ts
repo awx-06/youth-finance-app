@@ -39,7 +39,7 @@ export async function createSavingsGoal(
   // Check permissions
   const hasPermission =
     (user.role === 'CHILD' && user.childProfile?.id === account.childId) ||
-    (user.role === 'PARENT' && user.parentProfile?.children.some(c => c.id === account.childId));
+    (user.role === 'PARENT' && user.parentProfile?.children.some((c: { id: string }) => c.id === account.childId));
 
   if (!hasPermission) {
     throw new ForbiddenError('Access denied to this account');
@@ -153,7 +153,7 @@ export async function updateSavingsGoal(
   // Check permissions
   const hasPermission =
     (user.role === 'CHILD' && user.childProfile?.id === savingsGoal.childId) ||
-    (user.role === 'PARENT' && user.parentProfile?.children.some(c => c.id === savingsGoal.childId));
+    (user.role === 'PARENT' && user.parentProfile?.children.some((c: { id: string }) => c.id === savingsGoal.childId));
 
   if (!hasPermission) {
     throw new ForbiddenError('Not authorized to update this savings goal');
@@ -224,7 +224,7 @@ export async function deleteSavingsGoal(userId: string, goalId: string): Promise
   // Check permissions
   const hasPermission =
     (user.role === 'CHILD' && user.childProfile?.id === savingsGoal.childId) ||
-    (user.role === 'PARENT' && user.parentProfile?.children.some(c => c.id === savingsGoal.childId));
+    (user.role === 'PARENT' && user.parentProfile?.children.some((c: { id: string }) => c.id === savingsGoal.childId));
 
   if (!hasPermission) {
     throw new ForbiddenError('Not authorized to delete this savings goal');

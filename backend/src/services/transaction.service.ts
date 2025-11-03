@@ -1,4 +1,5 @@
-import { PrismaClient, Transaction, TransactionStatus, TransactionType } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import type { Transaction, TransactionStatus } from '@prisma/client';
 import { NotFoundError, ForbiddenError, BadRequestError } from '../middleware/errorHandler';
 import { CreateTransactionInput, TransactionFilters } from '../validators/transaction.validator';
 import { updateAccountBalance } from './account.service';
@@ -39,7 +40,7 @@ export async function createTransaction(
     // Check if user has permission to use this account
     const hasPermission =
       (user.role === 'CHILD' && user.childProfile?.id === fromAccount.childId) ||
-      (user.role === 'PARENT' && user.parentProfile?.children.some(c => c.id === fromAccount.childId));
+      (user.role === 'PARENT' && user.parentProfile?.children.some((c: { id: string }) => c.id === fromAccount.childId));
 
     if (!hasPermission) {
       throw new ForbiddenError('Access denied to source account');
@@ -147,11 +148,11 @@ export async function getTransactions(
   let accountIds: string[] = [];
 
   if (user.role === 'PARENT' && user.parentProfile) {
-    accountIds = user.parentProfile.children.flatMap((child) =>
-      child.accounts.map((account) => account.id)
+    accountIds = user.parentProfile.children.flatMap((child: { accounts: { id: string }[] }) =>
+      child.accounts.map((account: { id: string }) => account.id)
     );
   } else if (user.role === 'CHILD' && user.childProfile) {
-    accountIds = user.childProfile.accounts.map((account) => account.id);
+    accountIds = user.childProfile.accounts.map((account: { id: string }) => account.id);
   }
 
   // Build query
